@@ -170,8 +170,7 @@ objects:
         serviceAccountName: ${JENKINS_SERVICE_NAME}
         volumes:
         - name: ${JENKINS_SERVICE_NAME}-data
-          persistentVolumeClaim:
-            claimName: ${JENKINS_SERVICE_NAME}
+          emptyDir: {}
         # DELTA: add a configmap -- it's defined in pipeline.yaml
         - name: ${JENKINS_SERVICE_NAME}-casc-cfg
           configMap:
