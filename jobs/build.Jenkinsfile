@@ -267,8 +267,8 @@ lock(resource: "build-${params.STREAM}") {
             if (parent_commit && parent_version) {
                 shwrap("""
                 cosa meta \
-                    --set fedora-coreos.parent-commit=${parent_commit} \
-                    --set fedora-coreos.parent-version=${parent_version}
+                    --set rhel-coreos.parent-commit=${parent_commit} \
+                    --set rhel-coreos.parent-version=${parent_version}
                 """)
             }
         }
@@ -393,6 +393,36 @@ lock(resource: "build-${params.STREAM}") {
             }
         }
 
+        stage('Archive') {
+            // lower to make sure we don't go over and account for overhead
+            def xz_memlimit = cosa_memory_request_mb - 512
+            shwrap("""
+            export XZ_DEFAULTS=--memlimit=${xz_memlimit}Mi
+            cosa compress --compressor xz
+            """)
+
+            if (uploading) {
+              // just upload as public-read for now, but see discussions in
+              // https://github.com/coreos/fedora-coreos-tracker/issues/189
+              shwrap("""
+              cosa buildupload --skip-builds-json s3 \
+                  --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG} \
+                  --acl=public-read ${s3_stream_dir}/builds
+              """)
+            } else {
+              // Without an S3 server, just archive into the PVC
+              // itself. Otherwise there'd be no other way to retrieve the
+              // artifacts. But note we only keep one build at a time.
+              shwrap("""
+              rm -rf ${local_builddir}
+              mkdir -p ${local_builddir}
+              rsync -avh builds/ ${local_builddir}
+              """)
+            }
+        }
+
+        currentBuild.result = 'SUCCESS'
+        return this
         // process this batch
         parallel parallelruns
 
