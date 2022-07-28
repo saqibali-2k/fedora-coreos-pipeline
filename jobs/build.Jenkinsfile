@@ -86,11 +86,13 @@ def strict_build_param = is_mechanical ? "" : "--strict"
 // here; we can look into making them configurable through the template if
 // developers really need to tweak them (note that in the default minimal devel
 // workflow, only the qemu image is built).
-def cosa_memory_request_mb = 6.5 * 1024 as Integer
+// def cosa_memory_request_mb = 6.5 * 1024 as Integer
+def cosa_memory_request_mb = 1000 as Integer
 
 // the build pod runs most frequently and does the majority of the computation
 // so give it some healthy CPU shares
-pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
+// pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
+pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "500m")
 pod = pod.replace("COREOS_ASSEMBLER_CPU_LIMIT", "4")
 
 // substitute the right COSA image and mem request into the pod definition before spawning it
@@ -140,9 +142,9 @@ lock(resource: "build-${params.STREAM}") {
         // Clone the automation repo, which contains helper scripts. In the
         // future, we'll probably want this either part of the cosa image, or
         // in a derivative of cosa for pipeline needs.
-        shwrap("""
-        git clone --depth=1 https://github.com/coreos/fedora-coreos-releng-automation /var/tmp/fcos-releng
-        """)
+        // shwrap("""
+        // git clone --depth=1 https://github.com/coreos/fedora-coreos-releng-automation /var/tmp/fcos-releng
+        // """)
 
         // this is defined IFF we *should* and we *can* upload to S3
         def s3_stream_dir
