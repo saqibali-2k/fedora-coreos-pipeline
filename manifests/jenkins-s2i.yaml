@@ -9,11 +9,7 @@ parameters:
   - description: Git branch/tag reference for Jenkins S2I
     name: JENKINS_S2I_REF
     value: main
-
 objects:
-
-  ### JENKINS CONTROLLER ###
-
   - apiVersion: v1
     kind: ImageStream
     metadata:
