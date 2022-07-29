@@ -35,7 +35,7 @@ spec:
        - name: OPENSTACK_KOLA_TESTS_CONFIG
          value: /.openstack-kola-tests-config/config
      volumeMounts:
-     - name: additional-root-ca
+     - name: additional-anchors
        mountPath: /etc/pki/ca-trust/source/additional-anchors/
        readOnly: true
      - name: srv
