@@ -128,22 +128,22 @@ lock(resource: "build-${params.STREAM}") {
     podTemplate(cloud: 'openshift', label: pod_label, yaml: pod) {
     node(pod_label) { container('coreos-assembler') {
         // setup certs
-        shwrap("""cp -av /.ca/gitconfig \${HOME}/.gitconfig 
-        mkdir -p tmp/supermin/certs
-        cp -rvL /srv/.ca/ca.crt tmp/supermin/certs/ca.crt
-        echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
-        cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem
-        cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+        // shwrap("""cp -av /.ca/gitconfig \${HOME}/.gitconfig 
+        // mkdir -p tmp/supermin/certs
+        // cp -rvL /srv/.ca/ca.crt tmp/supermin/certs/ca.crt
+        // echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
+        // cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem
+        // cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
 
-        {
-            echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
-            echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
-            echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
-            echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
-            echo "env"
-        } > tmp/supermin/supermin.env
-        cat tmp/supermin/supermin.env
-        """)
+        // {
+        //     echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
+        //     echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
+        //     echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
+        //     echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+        //     echo "env"
+        // } > tmp/supermin/supermin.env
+        // cat tmp/supermin/supermin.env
+        // """)
         
         // print out details of the cosa image to help debugging
         shwrap("""
