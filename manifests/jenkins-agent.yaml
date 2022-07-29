@@ -20,16 +20,9 @@ objects:
         secrets:
           - destinationDir: certs
             secret:
-<<<<<<< HEAD
               name: ${ADDITIONAL_ROOT_CA_CERTS_SECRET}
       strategy:
         dockerStrategy:
-=======
-              name: ADDITIONAL_ROOT_CA_CERTS_SECRET
-      strategy:
-        type: Source
-        sourceStrategy:
->>>>>>> 3c97477 (Add support for additional root CA certs)
           from:
             kind: ImageStreamTag
             name: jenkins-agent-base:latest

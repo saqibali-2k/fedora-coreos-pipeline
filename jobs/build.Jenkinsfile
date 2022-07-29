@@ -99,7 +99,11 @@ pod = pod.replace("COREOS_ASSEMBLER_CPU_LIMIT", "4")
 // substitute the right COSA image and mem request into the pod definition before spawning it
 pod = pod.replace("COREOS_ASSEMBLER_MEMORY_REQUEST", "${cosa_memory_request_mb}Mi")
 pod = pod.replace("COREOS_ASSEMBLER_IMAGE", params.COREOS_ASSEMBLER_IMAGE)
+<<<<<<< HEAD
 pod = pod.replace("JENKINS_AGENT_IMAGE_TAG", jenkins_agent_image_tag)
+=======
+pod = pod.replace("JENKINS_AGENT_IMAGE", jenkins_agent_image)
+>>>>>>> 0569f70 (rebase issues)
 
 def podYaml = readYaml(text: pod);
 
