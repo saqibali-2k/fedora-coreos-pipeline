@@ -30,7 +30,7 @@ FEDORA_AWS_TESTING_USER_ID = "013116697141"
 // Base URL through which to download artifacts
 BUILDS_BASE_HTTP_URL = "https://builds.coreos.fedoraproject.org/prod/streams"
 
-
+echo "updating properties of job"
 properties([
     pipelineTriggers([]),
     parameters([
@@ -76,6 +76,7 @@ properties([
     durabilityHint('PERFORMANCE_OPTIMIZED')
 ])
 
+echo "processing stream"
 def is_mechanical = (params.STREAM in streams.mechanical)
 // If we are a mechanical stream then we can pin packages but we
 // don't maintin complete lockfiles so we can't build in strict mode.
