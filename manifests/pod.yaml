@@ -60,6 +60,9 @@ spec:
      - name: fedora-messaging-coreos-key
        mountPath: /run/kubernetes/secrets/fedora-messaging-coreos-key
        readOnly: true
+     - name: redhat-internal-ca
+       mountPath: /.ca/
+       readOnly: true
      securityContext:
        privileged: false
      resources:
@@ -73,6 +76,10 @@ spec:
   volumes:
   - name: srv
     emptyDir: {}
+  - name: redhat-internal-ca
+    secret:
+      secretName: redhat-internal-ca
+      optional: true
   # This secret is used for uploading to AWS
   - name: aws-fcos-builds-bot-config
     secret:

@@ -135,7 +135,7 @@ lock(resource: "build-${params.STREAM}") {
         // setup certs
         // shwrap("""cp -av /.ca/gitconfig \${HOME}/.gitconfig 
         // mkdir -p tmp/supermin/certs
-        // cp -rvL /srv/.ca/ca.crt tmp/supermin/certs/ca.crt
+        // cp -rvL /srv/.ca/* tmp/supermin/certs/
         // echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
         // cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem
         // cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
@@ -149,6 +149,19 @@ lock(resource: "build-${params.STREAM}") {
         // } > tmp/supermin/supermin.env
         // cat tmp/supermin/supermin.env
         // """)
+
+        shwrap("""
+        mkdir -p tmp/supermin/certs
+        cp -rvL /.ca/* tmp/supermin/certs/
+        {
+            echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
+            echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
+            echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
+            echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+            echo "env"
+        } > tmp/supermin/supermin.env
+        cat tmp/supermin/supermin.env
+        """)
         
         // print out details of the cosa image to help debugging
         shwrap("""
