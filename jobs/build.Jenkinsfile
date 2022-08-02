@@ -88,12 +88,12 @@ def strict_build_param = is_mechanical ? "" : "--strict"
 // developers really need to tweak them (note that in the default minimal devel
 // workflow, only the qemu image is built).
 // def cosa_memory_request_mb = 6.5 * 1024 as Integer
-def cosa_memory_request_mb = 1000 as Integer
+def cosa_memory_request_mb = 6.5 * 1024 as Integer
 
 // the build pod runs most frequently and does the majority of the computation
 // so give it some healthy CPU shares
 // pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
-pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "500m")
+pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
 pod = pod.replace("COREOS_ASSEMBLER_CPU_LIMIT", "4")
 
 // substitute the right COSA image and mem request into the pod definition before spawning it
@@ -150,18 +150,18 @@ lock(resource: "build-${params.STREAM}") {
         // cat tmp/supermin/supermin.env
         // """)
 
-        shwrap("""
-        mkdir -p tmp/supermin/certs
-        cp -rvL /.ca/* tmp/supermin/certs/
-        {
-            echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
-            echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
-            echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
-            echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
-            echo "env"
-        } > tmp/supermin/supermin.env
-        cat tmp/supermin/supermin.env
-        """)
+        // shwrap("""
+        // mkdir -p tmp/supermin/certs
+        // cp -rvL /.ca/* tmp/supermin/certs/
+        // {
+        //     echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
+        //     echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
+        //     echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
+        //     echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+        //     echo "env"
+        // } > tmp/supermin/supermin.env
+        // cat tmp/supermin/supermin.env
+        // """)
         
         // print out details of the cosa image to help debugging
         shwrap("""
