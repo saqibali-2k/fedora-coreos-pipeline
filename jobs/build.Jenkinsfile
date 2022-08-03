@@ -149,19 +149,20 @@ lock(resource: "build-${params.STREAM}") {
         // } > tmp/supermin/supermin.env
         // cat tmp/supermin/supermin.env
         // """)
+            // echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/source/anchors/"
+            // echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
+            // echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
 
-        // shwrap("""
-        // mkdir -p tmp/supermin/certs
-        // cp -rvL /.ca/* tmp/supermin/certs/
-        // {
-        //     echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
-        //     echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
-        //     echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
-        //     echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
-        //     echo "env"
-        // } > tmp/supermin/supermin.env
-        // cat tmp/supermin/supermin.env
-        // """)
+        shwrap("""
+        mkdir -p tmp/supermin/certs
+        cp -rvL /.ca/* tmp/supermin/certs/
+        {
+            echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
+            echo "mkdir -p /etc/pki/ca-trust/source/anchors/"
+            echo "env"
+        } > tmp/supermin/supermin.env
+        cat tmp/supermin/supermin.env
+        """)
         
         // print out details of the cosa image to help debugging
         shwrap("""
@@ -458,8 +459,6 @@ lock(resource: "build-${params.STREAM}") {
             }
         }
 
-        currentBuild.result = 'SUCCESS'
-        return this
         // process this batch
         parallel parallelruns
 
@@ -483,22 +482,24 @@ lock(resource: "build-${params.STREAM}") {
             }
         }
 
-        stage('Fork Multi-Arch Builds') {
-            if (uploading) {
-                for (arch in params.ADDITIONAL_ARCHES.split()) {
-                    // We pass in FORCE=true here since if we got this far we know
-                    // we want to do a build even if the code tells us that there
-                    // are no apparent changes since the previous commit.
-                    build job: 'build-arch', wait: false, parameters: [
-                        booleanParam(name: 'FORCE', value: true),
-                        booleanParam(name: 'MINIMAL', value: params.MINIMAL),
-                        booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE', value: params.ALLOW_KOLA_UPGRADE_FAILURE),
-                        string(name: 'FCOS_CONFIG_COMMIT', value: fcos_config_commit),
-                        string(name: 'COREOS_ASSEMBLER_IMAGE', value: params.COREOS_ASSEMBLER_IMAGE),
-                        string(name: 'STREAM', value: params.STREAM),
-                        string(name: 'VERSION', value: newBuildID),
-                        string(name: 'ARCH', value: arch)
-                    ]
+        if (!params.MINIMAL) {
+            stage('Fork Multi-Arch Builds') {
+                if (uploading) {
+                    for (arch in params.ADDITIONAL_ARCHES.split()) {
+                        // We pass in FORCE=true here since if we got this far we know
+                        // we want to do a build even if the code tells us that there
+                        // are no apparent changes since the previous commit.
+                        build job: 'build-arch', wait: false, parameters: [
+                            booleanParam(name: 'FORCE', value: true),
+                            booleanParam(name: 'MINIMAL', value: params.MINIMAL),
+                            booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE', value: params.ALLOW_KOLA_UPGRADE_FAILURE),
+                            string(name: 'FCOS_CONFIG_COMMIT', value: fcos_config_commit),
+                            string(name: 'COREOS_ASSEMBLER_IMAGE', value: params.COREOS_ASSEMBLER_IMAGE),
+                            string(name: 'STREAM', value: params.STREAM),
+                            string(name: 'VERSION', value: newBuildID),
+                            string(name: 'ARCH', value: arch)
+                        ]
+                    }
                 }
             }
         }
