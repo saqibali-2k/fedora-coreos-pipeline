@@ -89,8 +89,4 @@ objects:
       azure-testing-storage-container: ${AZURE_TESTING_STORAGE_CONTAINER}
       jenkins-jobs-url: ${JENKINS_JOBS_URL}
       jenkins-jobs-ref: ${JENKINS_JOBS_REF}
-<<<<<<< HEAD
       jenkins-agent-image-tag: ${JENKINS_AGENT_IMAGE_TAG}
-=======
-      jenkins-agent-image: ${JENKINS_AGENT_IMAGE}
->>>>>>> 7421e4c (Add support for additional root CA certs)

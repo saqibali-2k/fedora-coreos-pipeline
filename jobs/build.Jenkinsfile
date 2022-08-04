@@ -88,22 +88,18 @@ def strict_build_param = is_mechanical ? "" : "--strict"
 // developers really need to tweak them (note that in the default minimal devel
 // workflow, only the qemu image is built).
 // def cosa_memory_request_mb = 6.5 * 1024 as Integer
-def cosa_memory_request_mb = 6.5 * 1024 as Integer
+def cosa_memory_request_mb = 1000 as Integer
 
 // the build pod runs most frequently and does the majority of the computation
 // so give it some healthy CPU shares
 // pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
-pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "4")
+pod = pod.replace("COREOS_ASSEMBLER_CPU_REQUEST", "500m")
 pod = pod.replace("COREOS_ASSEMBLER_CPU_LIMIT", "4")
 
 // substitute the right COSA image and mem request into the pod definition before spawning it
 pod = pod.replace("COREOS_ASSEMBLER_MEMORY_REQUEST", "${cosa_memory_request_mb}Mi")
 pod = pod.replace("COREOS_ASSEMBLER_IMAGE", params.COREOS_ASSEMBLER_IMAGE)
-<<<<<<< HEAD
 pod = pod.replace("JENKINS_AGENT_IMAGE_TAG", jenkins_agent_image_tag)
-=======
-pod = pod.replace("JENKINS_AGENT_IMAGE", jenkins_agent_image)
->>>>>>> 0569f70 (rebase issues)
 
 def podYaml = readYaml(text: pod);
 
@@ -135,7 +131,7 @@ lock(resource: "build-${params.STREAM}") {
         // setup certs
         // shwrap("""cp -av /.ca/gitconfig \${HOME}/.gitconfig 
         // mkdir -p tmp/supermin/certs
-        // cp -rvL /srv/.ca/* tmp/supermin/certs/
+        // cp -rvL /srv/.ca/ca.crt tmp/supermin/certs/ca.crt
         // echo "mkdir -p /etc/pki/ca-trust/extracted/{pem,openssl}"
         // cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem
         // cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
@@ -149,20 +145,6 @@ lock(resource: "build-${params.STREAM}") {
         // } > tmp/supermin/supermin.env
         // cat tmp/supermin/supermin.env
         // """)
-            // echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/source/anchors/"
-            // echo "cp tmp/supermin/certs/* /etc/pki/ca-trust/extracted/pem"
-            // echo "cat tmp/supermin/certs/* >> /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
-
-        shwrap("""
-        mkdir -p tmp/supermin/certs
-        cp -rvL /.ca/* tmp/supermin/certs/
-        {
-            echo "export OSCONTAINER_CERT_DIR=tmp/supermin/certs/"
-            echo "mkdir -p /etc/pki/ca-trust/source/anchors/"
-            echo "env"
-        } > tmp/supermin/supermin.env
-        cat tmp/supermin/supermin.env
-        """)
         
         // print out details of the cosa image to help debugging
         shwrap("""
@@ -244,28 +226,28 @@ lock(resource: "build-${params.STREAM}") {
         }
 
         // buildfetch previous build info
-        // stage('BuildFetch') {
-        //     if (s3_stream_dir) {
-        //         shwrap("""
-        //         cosa buildfetch --arch=${basearch} \
-        //             --url s3://${s3_stream_dir}/builds \
-        //             --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
-        //         """)
-        //         if (parent_version != "") {
-        //             // also fetch the parent version; this is used by cosa to do the diff
-        //             shwrap("""
-        //             cosa buildfetch --arch=${basearch} \
-        //                 --build ${parent_version} \
-        //                 --url s3://${s3_stream_dir}/builds \
-        //                 --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
-        //             """)
-        //         }
-        //     } else if (utils.pathExists(local_builddir)) {
-        //         shwrap("""
-        //         cosa buildfetch --url=${local_builddir} --arch=${basearch}
-        //         """)
-        //     }
-        // }
+        stage('BuildFetch') {
+            if (s3_stream_dir) {
+                shwrap("""
+                cosa buildfetch --arch=${basearch} \
+                    --url s3://${s3_stream_dir}/builds \
+                    --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
+                """)
+                if (parent_version != "") {
+                    // also fetch the parent version; this is used by cosa to do the diff
+                    shwrap("""
+                    cosa buildfetch --arch=${basearch} \
+                        --build ${parent_version} \
+                        --url s3://${s3_stream_dir}/builds \
+                        --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
+                    """)
+                }
+            } else if (utils.pathExists(local_builddir)) {
+                shwrap("""
+                cosa buildfetch --url=${local_builddir} --arch=${basearch}
+                """)
+            }
+        }
 
 
         def prevBuildID = null
@@ -459,6 +441,8 @@ lock(resource: "build-${params.STREAM}") {
             }
         }
 
+        currentBuild.result = 'SUCCESS'
+        return this
         // process this batch
         parallel parallelruns
 
@@ -482,24 +466,22 @@ lock(resource: "build-${params.STREAM}") {
             }
         }
 
-        if (!params.MINIMAL) {
-            stage('Fork Multi-Arch Builds') {
-                if (uploading) {
-                    for (arch in params.ADDITIONAL_ARCHES.split()) {
-                        // We pass in FORCE=true here since if we got this far we know
-                        // we want to do a build even if the code tells us that there
-                        // are no apparent changes since the previous commit.
-                        build job: 'build-arch', wait: false, parameters: [
-                            booleanParam(name: 'FORCE', value: true),
-                            booleanParam(name: 'MINIMAL', value: params.MINIMAL),
-                            booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE', value: params.ALLOW_KOLA_UPGRADE_FAILURE),
-                            string(name: 'FCOS_CONFIG_COMMIT', value: fcos_config_commit),
-                            string(name: 'COREOS_ASSEMBLER_IMAGE', value: params.COREOS_ASSEMBLER_IMAGE),
-                            string(name: 'STREAM', value: params.STREAM),
-                            string(name: 'VERSION', value: newBuildID),
-                            string(name: 'ARCH', value: arch)
-                        ]
-                    }
+        stage('Fork Multi-Arch Builds') {
+            if (uploading) {
+                for (arch in params.ADDITIONAL_ARCHES.split()) {
+                    // We pass in FORCE=true here since if we got this far we know
+                    // we want to do a build even if the code tells us that there
+                    // are no apparent changes since the previous commit.
+                    build job: 'build-arch', wait: false, parameters: [
+                        booleanParam(name: 'FORCE', value: true),
+                        booleanParam(name: 'MINIMAL', value: params.MINIMAL),
+                        booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE', value: params.ALLOW_KOLA_UPGRADE_FAILURE),
+                        string(name: 'FCOS_CONFIG_COMMIT', value: fcos_config_commit),
+                        string(name: 'COREOS_ASSEMBLER_IMAGE', value: params.COREOS_ASSEMBLER_IMAGE),
+                        string(name: 'STREAM', value: params.STREAM),
+                        string(name: 'VERSION', value: newBuildID),
+                        string(name: 'ARCH', value: arch)
+                    ]
                 }
             }
         }
