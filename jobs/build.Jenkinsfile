@@ -218,28 +218,28 @@ lock(resource: "build-${params.STREAM}") {
         }
 
         // buildfetch previous build info
-        stage('BuildFetch') {
-            if (s3_stream_dir) {
-                shwrap("""
-                cosa buildfetch --arch=${basearch} \
-                    --url s3://${s3_stream_dir}/builds \
-                    --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
-                """)
-                if (parent_version != "") {
-                    // also fetch the parent version; this is used by cosa to do the diff
-                    shwrap("""
-                    cosa buildfetch --arch=${basearch} \
-                        --build ${parent_version} \
-                        --url s3://${s3_stream_dir}/builds \
-                        --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
-                    """)
-                }
-            } else if (utils.pathExists(local_builddir)) {
-                shwrap("""
-                cosa buildfetch --url=${local_builddir} --arch=${basearch}
-                """)
-            }
-        }
+        // stage('BuildFetch') {
+        //     if (s3_stream_dir) {
+        //         shwrap("""
+        //         cosa buildfetch --arch=${basearch} \
+        //             --url s3://${s3_stream_dir}/builds \
+        //             --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
+        //         """)
+        //         if (parent_version != "") {
+        //             // also fetch the parent version; this is used by cosa to do the diff
+        //             shwrap("""
+        //             cosa buildfetch --arch=${basearch} \
+        //                 --build ${parent_version} \
+        //                 --url s3://${s3_stream_dir}/builds \
+        //                 --aws-config-file \${AWS_FCOS_BUILDS_BOT_CONFIG}
+        //             """)
+        //         }
+        //     } else if (utils.pathExists(local_builddir)) {
+        //         shwrap("""
+        //         cosa buildfetch --url=${local_builddir} --arch=${basearch}
+        //         """)
+        //     }
+        // }
 
 
         def prevBuildID = null
