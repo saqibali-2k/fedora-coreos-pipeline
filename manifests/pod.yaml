@@ -60,6 +60,9 @@ spec:
      - name: fedora-messaging-coreos-key
        mountPath: /run/kubernetes/secrets/fedora-messaging-coreos-key
        readOnly: true
+     - name: additional-certs
+       mountPath: /.certs/
+       readOnly: true
      securityContext:
        privileged: false
      resources:
@@ -112,3 +115,8 @@ spec:
     secret:
       secretName: fedora-messaging-coreos-key
       optional: true
+  - name: additional-certs
+    secret: 
+      secretName: redhat-internal-ca
+      optional: true
+    

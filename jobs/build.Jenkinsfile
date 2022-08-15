@@ -142,6 +142,11 @@ lock(resource: "build-${params.STREAM}") {
         def basearch = shwrapCapture("cosa basearch")
 
         try { timeout(time: 240, unit: 'MINUTES') {
+        
+        // Setup internal cert
+        shwrap("""
+        /lib/coreos-assembler/add-root-cas /.certs/
+        """)
 
         // Clone the automation repo, which contains helper scripts. In the
         // future, we'll probably want this either part of the cosa image, or
@@ -177,8 +182,9 @@ lock(resource: "build-${params.STREAM}") {
             // for now, just use the PVC to keep cache.qcow2 in a stream-specific dir
             def cache_img = "/srv/prod/${params.STREAM}/cache.qcow2"
 
+            def yum_repos = "https://gitlab.cee.redhat.com/coreos/redhat-coreos.git"
             shwrap("""
-            cosa init --force --branch ${ref} --commit=${fcos_config_commit} ${src_config_url}
+            cosa init --force --branch ${ref} --extrepos=${yum_repos} --commit=${fcos_config_commit} ${src_config_url}
             mkdir -p \$(dirname ${cache_img})
             ln -s ${cache_img} cache/cache.qcow2
             """)
